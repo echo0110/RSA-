@@ -18,8 +18,13 @@ using namespace cv;
 
 #define IMG_COUNT  133		//我们有133张图
 
-#define IMG_WIDTH  (256*2)
-#define IMG_HEIGHT (192*2)
+//#define IMG_WIDTH  (256*2)
+//#define IMG_HEIGHT (192*2)
+
+
+#define IMG_WIDTH  1920
+#define IMG_HEIGHT 1080
+
 
 char szVisData[IMG_WIDTH * IMG_HEIGHT * 3];
 char szInfData[IMG_WIDTH * IMG_HEIGHT * 3];
