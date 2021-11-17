@@ -31,8 +31,7 @@ using namespace cv;
 //#define JPEG_LIB_VERSION 62
 
 
-#define IMG_WIDTH1920  1920
-#define IMG_HEIGHT1080 1080
+
 
 
 char szVisData[IMG_WIDTH * IMG_HEIGHT * 3];
@@ -78,11 +77,7 @@ int main(int argc, char *argv[])
 
 	//VideoWriter video("out.avi", CV_FOURCC('M','P','4','2'), 10, Size(IMG_WIDTH, IMG_HEIGHT));
 	Mat matBgr(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
-    Mat imagevis(IMG_WIDTH,IMG_HEIGHT,1);
-    Mat imageinf(IMG_WIDTH,IMG_HEIGHT,1);
 	char szRgbFileName[64];
-    char visFileName[64]={0};
-    char infFileName[64]={0};
 	struct timeval start_time, stop_time;
 
 #if 1
@@ -102,26 +97,11 @@ int main(int argc, char *argv[])
        
        
         
-        Mat image2BGR(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
-        Mat matvis(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, szVisData);
-		cvtColor(matvis, image2BGR, COLOR_RGB2BGR);
-		cv::imwrite("./img0.jpg", image2BGR); 
-        cv::Mat img = image2BGR.clone();
-        cv::resize(image2BGR, img, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
-        imwrite("vis_0.jpg", img); 
-
-
-        Mat image3BGR( Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
-        Mat matinf(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, szInfData);
-        cvtColor(matinf, image3BGR, COLOR_RGB2BGR);
-        cv::imwrite("./img1.jpg", image3BGR); 
-        cv::Mat img2 = image3BGR.clone();
-        cv::resize(image3BGR, img2, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
-        imwrite("inf_0.jpg", img2); 
+        
         
         
 		//执行融合
-		RKNN_ImgFusionProcess(imagevis.data, imageinf.data, szFusionData, IMG_WIDTH, IMG_HEIGHT,matinf);
+		RKNN_ImgFusionProcess(szVisData, szInfData, szFusionData, IMG_WIDTH, IMG_HEIGHT);
 
 		Mat matRgb(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, szFusionData);
 		cvtColor(matRgb, matBgr, COLOR_RGB2BGR);

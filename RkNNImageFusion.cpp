@@ -15,9 +15,15 @@
 using namespace std;
 using namespace cv;
 
+
+
+
+
 #define DEMO_INPUT_NUM 2 //4
-int MODEL_IN_WIDTH = 1920;
-int MODEL_IN_HEIGHT = 1080;
+
+
+
+
 
 static void printRKNNTensor(rknn_tensor_attr *attr)
 {
@@ -67,7 +73,7 @@ pFusionRgbData:			输出融合图像的数据,格式RGB
 uiWidth:				图像宽度
 uiHeight:				图像高度
 */
-int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight,Mat &matinf)
+int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight)
 {
 	//todo 这里实现融合算法
 
@@ -77,10 +83,27 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     unsigned char *model;
     const char *model_path = "/oem/image_fusion1080p_1126_sim.rknn";
 
-  
+    Mat image2BGR(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
+    Mat matvis(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pVisibleRgbData);
+    cvtColor(matvis, image2BGR, COLOR_RGB2BGR);
+    cv::Mat img_vis = image2BGR.clone();
+    cv::resize(image2BGR, img_vis, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
+    imwrite("vis_0.jpg", img_vis); 
 
+
+    Mat image3BGR( Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
+    Mat matinf(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pInfrareRgbData);
+    cvtColor(matinf, image3BGR, COLOR_RGB2BGR);
+    cv::Mat img_inf = image3BGR.clone();
+    cv::resize(image3BGR, img_inf, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
+    imwrite("inf_0.jpg", img_inf);
+
+    cv::Mat img_inf_yuv;
+	cv::cvtColor(img_inf,img_inf_yuv,CV_BGR2YUV);
+    std::vector<Mat> img_inf_mv;
+    split(img_inf, (vector<Mat>&)img_inf_mv);
     
-
+    
     
     //todo 初始化加载rknn模型
     // Load RKNN Model
@@ -148,14 +171,14 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
            channel = input_attrs[i].dims[0];
        }
        printf("channel = %d\n",channel);
-       int img_size = MODEL_IN_WIDTH * MODEL_IN_HEIGHT * channel;
+       int img_size = IMG_WIDTH1920 * IMG_HEIGHT1080 * channel;
        inputs[i].index = i;
        inputs[i].type = RKNN_TENSOR_UINT8;
        inputs[i].size = img_size;
        inputs[i].fmt = RKNN_TENSOR_NHWC;
     }
-    inputs[0].buf = pVisibleRgbData;
-    inputs[1].buf = pInfrareRgbData;
+    inputs[0].buf = img_vis.data; /*vis*/
+    inputs[1].buf = img_inf_mv[0].data; /*inf*/
     ret = rknn_inputs_set(ctx, io_num.n_input, inputs);
     if (ret < 0)
     {
@@ -185,31 +208,15 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
 
 
 
-    std::cout << " bgr H: "<<  matinf.rows << std::endl;
-    std::cout << " bgr W: "<< matinf.cols << std::endl;
-    std::cout << " bgr C: "<< matinf.channels() << std::endl;
+    std::cout << " bgr H: "<<  img_inf.rows << std::endl;
+    std::cout << " bgr W: "<< img_inf.cols << std::endl;
+    std::cout << " bgr C: "<< img_inf.channels() << std::endl;
 
 
+    img_inf_mv[0].data=(uchar*)(outputs[0].buf);
 
-    //inImage: input pic  of inf rgb 
-	cv::Mat imageY(MODEL_IN_WIDTH,MODEL_IN_HEIGHT,1);
-	cv::Mat imageU(MODEL_IN_WIDTH,MODEL_IN_HEIGHT,1);
-	cv::Mat imageV(MODEL_IN_WIDTH,MODEL_IN_HEIGHT,1);	
-	
-	//cv::Mat image2YUV(orig_img3.rows,orig_img3.cols,3);
-	cv::Mat image2YUV;
-	cv::cvtColor(matinf,image2YUV,CV_BGR2YUV);
-	std::vector<Mat> mv;
-	split(matinf, (vector<Mat>&)mv);
-	imageY = mv[0].clone();
-	imageU = mv[1].clone();
-	imageV = mv[2].clone();
-    imageY.data=(uchar*)(outputs[0].buf);
-
-    mv[0].data=(uchar*)(outputs[0].buf);
-
-    cv::Mat m3(MODEL_IN_HEIGHT, MODEL_IN_WIDTH, CV_8UC3);
-    cv::merge(mv, m3);
+    cv::Mat m3(IMG_WIDTH1920, IMG_HEIGHT1080, CV_8UC3);
+    cv::merge(img_inf_mv, m3);
     
     cv::imwrite("./imgyuv.jpg", m3);
     

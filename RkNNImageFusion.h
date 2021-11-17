@@ -5,6 +5,12 @@ return: 				0: 表示成功, -1:表示失败
 */
 
 
+#define IMG_WIDTH  (256*2)
+#define IMG_HEIGHT (192*2)
+
+#define IMG_WIDTH1920  1920
+#define IMG_HEIGHT1080 1080
+
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc.hpp"
@@ -24,7 +30,7 @@ uiWidth:				图像宽度
 uiHeight:				图像高度
 return: 				0: 表示成功, -1:表示失败
 */
-int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight,Mat &matinf);
+int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight);
 
 void RKNN_ImgFusionExit(void);
 
