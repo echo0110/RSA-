@@ -92,9 +92,9 @@ int main(int argc, char *argv[])
 ////        imagevis = mv_vis[0].clone();
 //        cv::imwrite("./img0.jpg", matvis);
 
-        Mat mat2(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
+        Mat image2YUV;
         Mat matvis(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, szVisData);
-		cvtColor(matvis, mat2, COLOR_RGB2BGR);
+		cvtColor(matvis, image2YUV, CV_RGB2YUV);
 		//video << matBgr;
 
 		//sprintf(szRgbFileName, "fus_%d.jpg", 0);
