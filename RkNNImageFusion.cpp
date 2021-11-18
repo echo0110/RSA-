@@ -93,30 +93,26 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     Mat image2BGR;
     Mat matvis(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pVisibleRgbData);
     cvtColor(matvis, image2BGR, COLOR_RGB2BGR);
-    cv::Mat img_vis = matvis.clone();
-    cv::resize(matvis, img_vis, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
-    imwrite("vis_0.jpg", img_vis); 
-    cv::Mat orig_img = imread("/oem/vis_0.jpg",0);//vis
-
-//    imwrite("vis_01.jpg", orig_img);
-//    orig_img = imread("/oem/vis_01.jpg",0);//vis
+    cv::Mat orig_img = matvis.clone();
+    cv::resize(matvis, orig_img, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
+    imwrite("vis_0.jpg", orig_img); 
+    orig_img = imread("/oem/vis_0.jpg",0);//vis
     
 
-    if (img_vis.cols != MODEL_IN_WIDTH || img_vis.rows != MODEL_IN_HEIGHT)
-    {
-        printf("resize %d %d to %d %d\n", img_vis.cols, img_vis.rows, MODEL_IN_WIDTH, MODEL_IN_HEIGHT);
-        //cv::resize(img_vis, img, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
-    }
+//    if (img_vis.cols != MODEL_IN_WIDTH || img_vis.rows != MODEL_IN_HEIGHT)
+//    {
+//        printf("resize %d %d to %d %d\n", img_vis.cols, img_vis.rows, MODEL_IN_WIDTH, MODEL_IN_HEIGHT);
+//        //cv::resize(img_vis, img, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
+//    }
 
 
     Mat image3BGR( Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
     Mat matinf(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pInfrareRgbData);
     cvtColor(matinf, image3BGR, COLOR_RGB2BGR);
-    cv::Mat img_inf = image3BGR.clone();
-    cv::resize(image3BGR, img_inf, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
-    imwrite("inf_0.jpg", img_inf);
+    cv::Mat orig_img3 = image3BGR.clone();
+    cv::resize(image3BGR, orig_img3, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
+    imwrite("inf_0.jpg", orig_img3);
     cv::Mat orig_img2 = imread("/oem/inf_0.jpg",IMREAD_GRAYSCALE);//inf
-    imwrite("inf_01.jpg", orig_img2);
     
     
 	
@@ -259,21 +255,31 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
 
 
 
-//    std::cout << " bgr H: "<<  orig_img3.rows << std::endl;
-//    std::cout << " bgr W: "<< orig_img3.cols << std::endl;
-//    std::cout << " bgr C: "<< orig_img3.channels() << std::endl;
+    std::cout << " bgr H: "<<  orig_img3.rows << std::endl;
+    std::cout << " bgr W: "<< orig_img3.cols << std::endl;
+    std::cout << " bgr C: "<< orig_img3.channels() << std::endl;
 
 
-//    img_inf_mv[0].data=(uchar*)(outputs[0].buf);
-//
-//    cv::Mat m3(IMG_WIDTH1920, IMG_HEIGHT1080, CV_8UC3);
-//    cv::merge(img_inf_mv, m3);
-//    
-//    cv::imwrite("./imgyuv.jpg", m3);
+     //inImage: input pic  of inf rgb 
+	cv::Mat imageY(orig_img3.rows,orig_img2.cols,1);
+	cv::Mat imageU(orig_img3.rows,orig_img2.cols,1);
+	cv::Mat imageV(orig_img3.rows,orig_img2.cols,1);	
 
+	cv::Mat image2YUV;
+	cv::cvtColor(orig_img3,image2YUV,CV_BGR2YUV);
+	std::vector<Mat> mv;
+	split(orig_img3, (vector<Mat>&)mv);
+	imageY = mv[0].clone();
+	imageU = mv[1].clone();
+	imageV = mv[2].clone();
 
-    Mat temp= Mat(MODEL_IN_WIDTH, MODEL_IN_HEIGHT, CV_8UC1,  outputs[0].buf);
-    cv::imwrite("./output.jpg", temp);
+    mv[0].data=(uchar*)(outputs[0].buf);
+
+    cv::Mat m3(MODEL_IN_HEIGHT, MODEL_IN_WIDTH, CV_8UC3);
+    cv::merge(mv, m3);
+    
+
+    cv::imwrite("./imgyuv.jpg", m3);
 
     // Release rknn_outputs
     rknn_outputs_release(ctx, 1, outputs);
