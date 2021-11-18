@@ -82,7 +82,8 @@ uiHeight:				图像高度
 int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight)
 {
 	//todo 这里实现融合算法
-
+    const int MODEL_IN_WIDTH = 1920;
+    const int MODEL_IN_HEIGHT = 1080;
     rknn_context ctx;
     int ret;
     int model_len = 0;
@@ -93,17 +94,17 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     Mat matvis(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pVisibleRgbData);
     cvtColor(matvis, image2BGR, COLOR_RGB2BGR);
     cv::Mat img_vis = matvis.clone();
-    cv::resize(matvis, img_vis, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
+    cv::resize(matvis, img_vis, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
     imwrite("vis_0.jpg", img_vis); 
-    sleep(5);
     cv::Mat orig_img = imread("/oem/vis_0.jpg",0);//vis
 
-    imwrite("vis_01.jpg", orig_img);
+//    imwrite("vis_01.jpg", orig_img);
+//    orig_img = imread("/oem/vis_01.jpg",0);//vis
     
 
-    if (img_vis.cols != IMG_WIDTH1920 || img_vis.rows != IMG_HEIGHT1080)
+    if (img_vis.cols != MODEL_IN_WIDTH || img_vis.rows != MODEL_IN_HEIGHT)
     {
-        printf("resize %d %d to %d %d\n", img_vis.cols, img_vis.rows, IMG_WIDTH1920, IMG_HEIGHT1080);
+        printf("resize %d %d to %d %d\n", img_vis.cols, img_vis.rows, MODEL_IN_WIDTH, MODEL_IN_HEIGHT);
         //cv::resize(img_vis, img, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
     }
 
@@ -112,32 +113,46 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     Mat matinf(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pInfrareRgbData);
     cvtColor(matinf, image3BGR, COLOR_RGB2BGR);
     cv::Mat img_inf = image3BGR.clone();
-    cv::resize(image3BGR, img_inf, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
+    cv::resize(image3BGR, img_inf, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
     imwrite("inf_0.jpg", img_inf);
-    cv::Mat img_inf2 = imread("./inf_0.jpg",IMREAD_GRAYSCALE);//inf
-    imwrite("inf_01.jpg", img_inf2);
-    return 0;
+    cv::Mat orig_img2 = imread("/oem/inf_0.jpg",IMREAD_GRAYSCALE);//inf
+    imwrite("inf_01.jpg", orig_img2);
     
     
 	
-//    std::vector<Mat> img_inf_mv;
-//    split(img_inf, (vector<Mat>&)img_inf_mv);
-//
-//    cv::Mat img_inf_yuv;
-//	cv::cvtColor(img_inf,img_inf_yuv,CV_BGR2YUV);
-//    std::vector<Mat> img_inf_mv;
-//    split(img_inf, (vector<Mat>&)img_inf_mv);
     
+   
+    if (!orig_img.data)
+    {
+        printf("cv::imread %s fail!\n", "/oem/vis_0.jpg");
+        return -1;
+    }
+     if (!orig_img2.data)
+    {
+        printf("cv::imread %s fail!\n", "/oem/inf_0.jpg");
+        return -1;
+    }
+
+    cv::Mat img = orig_img.clone();
+    cv::Mat img2 = orig_img2.clone();
+    if (orig_img.cols != MODEL_IN_WIDTH || orig_img.rows != MODEL_IN_HEIGHT)
+    {
+        printf("resize %d %d to %d %d\n", orig_img.cols, orig_img.rows, MODEL_IN_WIDTH, MODEL_IN_HEIGHT);
+        cv::resize(orig_img, img, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
+    }
+    if (orig_img2.cols != MODEL_IN_WIDTH || orig_img2.rows != MODEL_IN_HEIGHT)
+    {
+        printf("resize %d %d to %d %d\n", orig_img2.cols, orig_img2.rows, MODEL_IN_WIDTH, MODEL_IN_HEIGHT);
+        cv::resize(orig_img2, img2, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
+    }
     
-    
-    //todo 初始化加载rknn模型
     // Load RKNN Model
     model = load_model(model_path, &model_len);
     ret = rknn_init(&ctx, model, model_len, 0);
     if (ret < 0)
     {
-       printf("rknn_init fail! ret=%d\n", ret);
-       return -1;
+        printf("rknn_init fail! ret=%d\n", ret);
+        return -1;
     }
 
     // Get Model Input Output Info
@@ -145,8 +160,8 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     ret = rknn_query(ctx, RKNN_QUERY_IN_OUT_NUM, &io_num, sizeof(io_num));
     if (ret != RKNN_SUCC)
     {
-       printf("rknn_query fail! ret=%d\n", ret);
-       return -1;
+        printf("rknn_query fail! ret=%d\n", ret);
+        return -1;
     }
     printf("model input num: %d, output num: %d\n", io_num.n_input, io_num.n_output);
 
@@ -155,14 +170,14 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     memset(input_attrs, 0, sizeof(input_attrs));
     for (int i = 0; i < io_num.n_input; i++)
     {
-       input_attrs[i].index = i;
-       ret = rknn_query(ctx, RKNN_QUERY_INPUT_ATTR, &(input_attrs[i]), sizeof(rknn_tensor_attr));
-       if (ret != RKNN_SUCC)
-       {
-           printf("rknn_query fail! ret=%d\n", ret);
-           return -1;
-       }
-       printRKNNTensor(&(input_attrs[i]));
+        input_attrs[i].index = i;
+        ret = rknn_query(ctx, RKNN_QUERY_INPUT_ATTR, &(input_attrs[i]), sizeof(rknn_tensor_attr));
+        if (ret != RKNN_SUCC)
+        {
+            printf("rknn_query fail! ret=%d\n", ret);
+            return -1;
+        }
+        printRKNNTensor(&(input_attrs[i]));
     }
 
     printf("output tensors:\n");
@@ -170,47 +185,51 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     memset(output_attrs, 0, sizeof(output_attrs));
     for (int i = 0; i < io_num.n_output; i++)
     {
-       output_attrs[i].index = i;
-       ret = rknn_query(ctx, RKNN_QUERY_OUTPUT_ATTR, &(output_attrs[i]), sizeof(rknn_tensor_attr));
-       if (ret != RKNN_SUCC)
-       {
-           printf("rknn_query fail! ret=%d\n", ret);
-           return -1;
-       }
-       printRKNNTensor(&(output_attrs[i]));
+        output_attrs[i].index = i;
+        ret = rknn_query(ctx, RKNN_QUERY_OUTPUT_ATTR, &(output_attrs[i]), sizeof(rknn_tensor_attr));
+        if (ret != RKNN_SUCC)
+        {
+            printf("rknn_query fail! ret=%d\n", ret);
+            return -1;
+        }
+        printRKNNTensor(&(output_attrs[i]));
     }
-
+    printf("model input num: %d, output num: %d\n", io_num.n_input, io_num.n_output);
     assert(DEMO_INPUT_NUM == io_num.n_input);
     // Set Input struct
     rknn_input inputs[DEMO_INPUT_NUM];
     memset(inputs, 0, DEMO_INPUT_NUM * sizeof(rknn_input));
     for (int i = 0; i < io_num.n_input; ++i)
     {
-       int channel = 0;
-       if (input_attrs[i].fmt == RKNN_TENSOR_NCHW)
-       {
-           channel = input_attrs[i].dims[2];
-       }
-       else
-       {
-           channel = input_attrs[i].dims[0];
-       }
-       printf("channel = %d\n",channel);
-       int img_size = IMG_WIDTH1920 * IMG_HEIGHT1080 * channel;
-       inputs[i].index = i;
-       inputs[i].type = RKNN_TENSOR_UINT8;
-       inputs[i].size = img_size;
-       inputs[i].fmt = RKNN_TENSOR_NCHW;
-       inputs[0].pass_through = 0;
+        int channel = 0;
+        if (input_attrs[i].fmt == RKNN_TENSOR_NCHW)
+        {
+            channel = input_attrs[i].dims[2];
+            printf("222func is %s,%d,channel %d\n\n",__func__,__LINE__,channel);
+        }
+        else
+        {
+            channel = input_attrs[i].dims[0];
+            printf("222func is %s,%d,channel %d\n\n",__func__,__LINE__,channel);
+        }
+        int img_size = MODEL_IN_WIDTH * MODEL_IN_HEIGHT * channel;
+        inputs[i].index = i;
+        inputs[i].type = RKNN_TENSOR_UINT8;
+        inputs[i].size = img_size;
+        inputs[i].fmt = RKNN_TENSOR_NCHW;
+        inputs[0].pass_through = 0;
     }
-    inputs[0].buf = orig_img.data; /*vis*/
-    inputs[1].buf = img_inf2.data; /*inf*/
+    {
+        inputs[0].buf = orig_img.data;
+        inputs[1].buf = orig_img2.data;
+    }
 
-    cv::Mat vis= Mat(IMG_WIDTH1920, IMG_HEIGHT1080, CV_8UC1, inputs[0].buf);
-    cv::imwrite("./inputs_vis.jpg", vis);
+    Mat vis= Mat(MODEL_IN_HEIGHT, MODEL_IN_WIDTH, CV_8UC1, inputs[0].buf);
+    cv::imwrite("./inputs0.jpg", vis);
 
-    cv::Mat inf= Mat(IMG_WIDTH1920, IMG_HEIGHT1080, CV_8UC1, inputs[1].buf);
-    cv::imwrite("./inputs_inf.jpg", inf);
+    Mat inf= Mat(MODEL_IN_HEIGHT, MODEL_IN_WIDTH, CV_8UC1, inputs[1].buf);
+    cv::imwrite("./inputs1.jpg", inf);
+
     ret = rknn_inputs_set(ctx, io_num.n_input, inputs);
     if (ret < 0)
     {
@@ -240,9 +259,9 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
 
 
 
-    std::cout << " bgr H: "<<  img_inf.rows << std::endl;
-    std::cout << " bgr W: "<< img_inf.cols << std::endl;
-    std::cout << " bgr C: "<< img_inf.channels() << std::endl;
+//    std::cout << " bgr H: "<<  orig_img3.rows << std::endl;
+//    std::cout << " bgr W: "<< orig_img3.cols << std::endl;
+//    std::cout << " bgr C: "<< orig_img3.channels() << std::endl;
 
 
 //    img_inf_mv[0].data=(uchar*)(outputs[0].buf);
@@ -253,7 +272,7 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
 //    cv::imwrite("./imgyuv.jpg", m3);
 
 
-    Mat temp= Mat(IMG_WIDTH1920, IMG_HEIGHT1080, CV_8UC1,  outputs[0].buf);
+    Mat temp= Mat(MODEL_IN_WIDTH, MODEL_IN_HEIGHT, CV_8UC1,  outputs[0].buf);
     cv::imwrite("./output.jpg", temp);
 
     // Release rknn_outputs
