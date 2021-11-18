@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <fstream>
+#include <iostream>
+#include <sys/time.h>
 
 #include "RkNNImageFusion.h"
 
@@ -11,6 +16,7 @@
 
 #include "rknn_api.h"
 #include <iostream>
+#include <unistd.h>
 
 using namespace std;
 using namespace cv;
@@ -83,13 +89,17 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     unsigned char *model;
     const char *model_path = "/oem/image_fusion1080p_1126_sim.rknn";
 
-    Mat image2BGR(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
+    Mat image2BGR;
     Mat matvis(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pVisibleRgbData);
     cvtColor(matvis, image2BGR, COLOR_RGB2BGR);
     cv::Mat img_vis = matvis.clone();
     cv::resize(matvis, img_vis, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
     imwrite("vis_0.jpg", img_vis); 
-    cv::Mat orig_img = imread("./vis_0.jpg",0);//vis
+    sleep(5);
+    cv::Mat orig_img = imread("/oem/vis_0.jpg",0);//vis
+
+    imwrite("vis_01.jpg", orig_img);
+    
 
     if (img_vis.cols != IMG_WIDTH1920 || img_vis.rows != IMG_HEIGHT1080)
     {
@@ -104,7 +114,10 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     cv::Mat img_inf = image3BGR.clone();
     cv::resize(image3BGR, img_inf, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
     imwrite("inf_0.jpg", img_inf);
-    cv::Mat img_inf2 = imread("./inf_0.jpg",0);//inf
+    cv::Mat img_inf2 = imread("./inf_0.jpg",IMREAD_GRAYSCALE);//inf
+    imwrite("inf_01.jpg", img_inf2);
+    return 0;
+    
     
 	
 //    std::vector<Mat> img_inf_mv;
@@ -193,10 +206,10 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     inputs[0].buf = orig_img.data; /*vis*/
     inputs[1].buf = img_inf2.data; /*inf*/
 
-    Mat vis= Mat(IMG_WIDTH1920, IMG_HEIGHT1080, CV_8UC1, inputs[0].buf);
+    cv::Mat vis= Mat(IMG_WIDTH1920, IMG_HEIGHT1080, CV_8UC1, inputs[0].buf);
     cv::imwrite("./inputs_vis.jpg", vis);
 
-    Mat inf= Mat(IMG_WIDTH1920, IMG_HEIGHT1080, CV_8UC1, inputs[1].buf);
+    cv::Mat inf= Mat(IMG_WIDTH1920, IMG_HEIGHT1080, CV_8UC1, inputs[1].buf);
     cv::imwrite("./inputs_inf.jpg", inf);
     ret = rknn_inputs_set(ctx, io_num.n_input, inputs);
     if (ret < 0)
