@@ -24,10 +24,9 @@ extern "C" {
 using namespace std;
 using namespace cv;
 
-#define IMG_COUNT  3//133		//我们有133张图
+#define IMG_COUNT  133		//我们有133张图
 
-#define IMG_WIDTH  (256*2)
-#define IMG_HEIGHT (192*2)
+
 //#define JPEG_LIB_VERSION 62
 
 
@@ -82,7 +81,7 @@ int main(int argc, char *argv[])
 
 #if 1
 	gettimeofday(&start_time, NULL);
-	for (int i = 2; i < IMG_COUNT; i++)
+	for (int i = 0; i < IMG_COUNT; i++)
 	{
 		//分别读取红外和可见光图像
 		sprintf(szRgbFileName, "res/inf_%d.rgb", i);

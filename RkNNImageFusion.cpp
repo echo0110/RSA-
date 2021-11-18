@@ -99,13 +99,6 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     orig_img = imread("/oem/vis_0.jpg",0);//vis
     
 
-//    if (img_vis.cols != MODEL_IN_WIDTH || img_vis.rows != MODEL_IN_HEIGHT)
-//    {
-//        printf("resize %d %d to %d %d\n", img_vis.cols, img_vis.rows, MODEL_IN_WIDTH, MODEL_IN_HEIGHT);
-//        //cv::resize(img_vis, img, cv::Size(IMG_WIDTH1920, IMG_HEIGHT1080), cv::INTER_LINEAR);
-//    }
-
-
     Mat image3BGR( Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
     Mat matinf(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pInfrareRgbData);
     cvtColor(matinf, image3BGR, COLOR_RGB2BGR);
@@ -220,11 +213,6 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
         inputs[1].buf = orig_img2.data;
     }
 
-    Mat vis= Mat(MODEL_IN_HEIGHT, MODEL_IN_WIDTH, CV_8UC1, inputs[0].buf);
-    cv::imwrite("./inputs0.jpg", vis);
-
-    Mat inf= Mat(MODEL_IN_HEIGHT, MODEL_IN_WIDTH, CV_8UC1, inputs[1].buf);
-    cv::imwrite("./inputs1.jpg", inf);
 
     ret = rknn_inputs_set(ctx, io_num.n_input, inputs);
     if (ret < 0)
@@ -253,12 +241,7 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
         return -1;
     }
 
-
-
-    std::cout << " bgr H: "<<  orig_img3.rows << std::endl;
-    std::cout << " bgr W: "<< orig_img3.cols << std::endl;
-    std::cout << " bgr C: "<< orig_img3.channels() << std::endl;
-
+    pFusionRgbData=(uchar*)(outputs[0].buf);
 
      //inImage: input pic  of inf rgb 
 	cv::Mat imageY(orig_img3.rows,orig_img2.cols,1);
