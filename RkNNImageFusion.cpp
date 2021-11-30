@@ -88,7 +88,7 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     int ret;
     int model_len = 0;
     unsigned char *model;
-    const char *model_path = "/oem/image_fusion1080p_1126_sim.rknn";
+    const char *model_path = "/oem/image_fusion_384_288.rknn";
 
     Mat image2BGR;
     Mat matvis(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pVisibleRgbData);
