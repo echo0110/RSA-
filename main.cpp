@@ -35,8 +35,11 @@ using namespace cv;
 
 char szVisData[IMG_WIDTH * IMG_HEIGHT * 3];
 char szInfData[IMG_WIDTH * IMG_HEIGHT * 3];
-char szFusionData[IMG_WIDTH * IMG_HEIGHT * 3];
+char buff[IMG_WIDTH * IMG_HEIGHT * 3];
+//void** szFusionData=NULL;
 
+void* a = NULL;
+void** szFusionData=&a;
 
 
 int ReadFile(const char *pszName, char *pszData, int iLen)
@@ -84,13 +87,6 @@ int main(int argc, char *argv[])
 	for (int i = 1; i < IMG_COUNT; i++)
 	{
 		//分别读取红外和可见光图像
-//		sprintf(szRgbFileName, "res/inf_%d.rgb", i);
-//        printf(" %s,%d, szRgbFileName is %s\n",__func__,__LINE__,szRgbFileName);
-//		ReadFile(szRgbFileName, szInfData, sizeof(szInfData));
-//		sprintf(szRgbFileName, "res/vis_%d.rgb", i);
-//        printf(" %s,%d, szRgbFileName is %s\n",__func__,__LINE__,szRgbFileName);
-//		ReadFile(szRgbFileName, szVisData, sizeof(szVisData));
-
 
         sprintf(szRgbFileName, "./inf_512x384_%d.jpg", i);
         printf(" %s,%d, szRgbFileName is %s\n",__func__,__LINE__,szRgbFileName);
@@ -116,21 +112,21 @@ int main(int argc, char *argv[])
         printf("cv::imread %s fail!\n", img_path_ir);
         return -1;
         }
-       
+        //szFusionData=buff;
         
 		//执行融合
 		//RKNN_ImgFusionProcess(szVisData, szInfData, szFusionData, IMG_WIDTH, IMG_HEIGHT);
 		RKNN_ImgFusionProcess(orig_img_vis.data, orig_img_ir.data, szFusionData, IMG_WIDTH, IMG_HEIGHT);
-
-
-        
+        printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
         int count = 30;
         Mat Img;
         for(int k=0;k<count;k++)
         {
-            Mat b(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)szFusionData);
-            Mat g(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)(szFusionData+IMG_WIDTH512*IMG_HEIGHT384*1*sizeof(float)));
-            Mat r(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)(szFusionData+IMG_WIDTH512*IMG_HEIGHT384*2*sizeof(float)));
+            printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
+            Mat b(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)(*szFusionData));
+            printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
+            Mat g(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)((*szFusionData)+IMG_WIDTH512*IMG_HEIGHT384*1*sizeof(float)));
+            Mat r(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)((*szFusionData)+IMG_WIDTH512*IMG_HEIGHT384*2*sizeof(float)));
             b.convertTo(b,CV_8UC1);
             g.convertTo(g,CV_8UC1);
             r.convertTo(r,CV_8UC1);
@@ -144,20 +140,9 @@ int main(int argc, char *argv[])
         sprintf(szRgbFileName, "fus_%d.jpg", i);
 		cv::imwrite(szRgbFileName, Img);
 		printf("save %s\n", szRgbFileName);
-        return 0;
-
-		Mat matRgb(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, szFusionData);
-		cvtColor(matRgb, matBgr, COLOR_RGB2BGR);
-		
-
-		sprintf(szRgbFileName, "fus_%d.jpg", i);
-		cv::imwrite(szRgbFileName, matBgr);
-		printf("save %s\n", szRgbFileName);
+        szFusionData=NULL;
 	}
 	gettimeofday(&stop_time, NULL);
-//	printf("run use %f ms , average time: %f ms\n", 
-//			(__get_us(stop_time) - __get_us(start_time)) / 1000.0,
-//			(__get_us(stop_time) - __get_us(start_time)) / 1000.0 / IMG_COUNT);
 
 #else
 	//这部分是测试单纯融合100次消耗的时间

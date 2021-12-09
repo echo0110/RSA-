@@ -168,10 +168,9 @@ pFusionRgbData:			输出融合图像的数据,格式RGB
 uiWidth:				图像宽度
 uiHeight:				图像高度
 */
-int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight)
+int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData,void **pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight)
 {
 	//todo 这里实现融合算法
-   
     inputs[0].buf = pVisibleRgbData;//pVisibleRgbData;
     inputs[1].buf = pInfrareRgbData;//pInfrareRgbData;
 
@@ -208,19 +207,19 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
 
     struct timeval start_time1;
     struct timeval start_time2;
-    
+    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************"); 
 
-    pFusionRgbData = outputs[0].buf;
+    *pFusionRgbData = outputs[0].buf;
+    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
+    //pFusionRgbData=strdup((char *)outputs[0].buf);
+    //memcpy(pFusionRgbData, (char*)outputs[0].buf, strlen((char*)outputs[0].buf));
+    gettimeofday(&start_time1, NULL);
     gettimeofday(&start_time2, NULL);
 
     gettimeofday(&stop_time, NULL);
     printf(" run total = %f ms\n", 
            (__get_us(start_time1) - __get_us(start_time)) / 1000.0);
-//    printf(" run postprocess average1 = %f ms\n", 
-//           (__get_us(start_time2) - __get_us(start_time1)) / 1000.0/count);
-//    printf(" run postprocess average2 = %f ms\n", 
-//           (__get_us(stop_time) - __get_us(start_time2)) / 1000.0/count);
-//    imwrite("Img.jpg",Img);
+
 
 	return 0;
 }

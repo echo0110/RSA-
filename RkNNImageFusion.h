@@ -37,7 +37,8 @@ uiWidth:				图像宽度
 uiHeight:				图像高度
 return: 				0: 表示成功, -1:表示失败
 */
-int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight);
+int RKNN_ImgFusionProcess(void *pVisibleRgbData,void *pInfrareRgbData, void **pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight);
+//char* RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, unsigned int uiWidth, unsigned int uiHeight);
 
 void RKNN_ImgFusionExit(void);
 
