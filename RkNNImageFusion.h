@@ -20,6 +20,9 @@ return: 				0: 表示成功, -1:表示失败
 #include <iostream>
 using namespace cv;
 
+extern double __get_us(struct timeval t);
+
+
 int RKNN_ImgFusionInit(const char *pszModelPath);
 
 /*

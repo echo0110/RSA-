@@ -82,57 +82,30 @@ uiHeight:				图像高度
 int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight)
 {
 	//todo 这里实现融合算法
-    const int MODEL_IN_WIDTH = 1920;
-    const int MODEL_IN_HEIGHT = 1080;
+   
+    const int MODEL_IN_WIDTH = 512;
+    const int MODEL_IN_HEIGHT = 384;
     rknn_context ctx;
     int ret;
     int model_len = 0;
     unsigned char *model;
-    const char *model_path = "/oem/image_fusion_384_288.rknn";
+    const char *model_path = "/oem/ImageFusion/image_fusion_384_512.rknn";
 
-    Mat image2BGR;
-    Mat matvis(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pVisibleRgbData);
-    cvtColor(matvis, image2BGR, COLOR_RGB2BGR);
-    cv::Mat orig_img = matvis.clone();
-    cv::resize(matvis, orig_img, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
-    imwrite("vis_0.jpg", orig_img); 
-    orig_img = imread("/oem/vis_0.jpg",0);//vis
-    
-
-    Mat image3BGR( Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
-    Mat matinf(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, pInfrareRgbData);
-    cvtColor(matinf, image3BGR, COLOR_RGB2BGR);
-    cv::Mat orig_img3 = image3BGR.clone();
-    cv::resize(image3BGR, orig_img3, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
-    imwrite("inf_0.jpg", orig_img3);
-    cv::Mat orig_img2 = imread("/oem/inf_0.jpg",IMREAD_GRAYSCALE);//inf
-    
-    
-	
-    
-   
-    if (!orig_img.data)
+    const char *img_path_vis = "/oem/ImageFusion/vis_512x384_1.jpg";
+    const char *img_path_ir = "/oem/ImageFusion/inf_512x384_1.jpg";
+    // Load image    
+    cv::Mat orig_img_vis = imread(img_path_vis);
+    if (!orig_img_vis.data)
     {
-        printf("cv::imread %s fail!\n", "/oem/vis_0.jpg");
-        return -1;
-    }
-     if (!orig_img2.data)
-    {
-        printf("cv::imread %s fail!\n", "/oem/inf_0.jpg");
+        printf("cv::imread %s fail!\n", img_path_vis);
         return -1;
     }
 
-    cv::Mat img = orig_img.clone();
-    cv::Mat img2 = orig_img2.clone();
-    if (orig_img.cols != MODEL_IN_WIDTH || orig_img.rows != MODEL_IN_HEIGHT)
+    cv::Mat orig_img_ir = imread(img_path_ir);
+    if (!orig_img_ir.data)
     {
-        printf("resize %d %d to %d %d\n", orig_img.cols, orig_img.rows, MODEL_IN_WIDTH, MODEL_IN_HEIGHT);
-        cv::resize(orig_img, img, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
-    }
-    if (orig_img2.cols != MODEL_IN_WIDTH || orig_img2.rows != MODEL_IN_HEIGHT)
-    {
-        printf("resize %d %d to %d %d\n", orig_img2.cols, orig_img2.rows, MODEL_IN_WIDTH, MODEL_IN_HEIGHT);
-        cv::resize(orig_img2, img2, cv::Size(MODEL_IN_WIDTH, MODEL_IN_HEIGHT), cv::INTER_LINEAR);
+        printf("cv::imread %s fail!\n", img_path_ir);
+        return -1;
     }
     
     // Load RKNN Model
@@ -183,37 +156,37 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
         }
         printRKNNTensor(&(output_attrs[i]));
     }
-    printf("model input num: %d, output num: %d\n", io_num.n_input, io_num.n_output);
+    printf("222func is %s,%d,io_num.n_input is %d\n",__func__,__LINE__,io_num.n_input);
     assert(DEMO_INPUT_NUM == io_num.n_input);
     // Set Input struct
     rknn_input inputs[DEMO_INPUT_NUM];
     memset(inputs, 0, DEMO_INPUT_NUM * sizeof(rknn_input));
+    std::vector<cv::Mat> imgs;
     for (int i = 0; i < io_num.n_input; ++i)
     {
         int channel = 0;
         if (input_attrs[i].fmt == RKNN_TENSOR_NCHW)
         {
             channel = input_attrs[i].dims[2];
-            printf("222func is %s,%d,channel %d\n\n",__func__,__LINE__,channel);
         }
         else
         {
             channel = input_attrs[i].dims[0];
-            printf("222func is %s,%d,channel %d\n\n",__func__,__LINE__,channel);
         }
+        printf("channel = %d\n",channel);
         int img_size = MODEL_IN_WIDTH * MODEL_IN_HEIGHT * channel;
         inputs[i].index = i;
         inputs[i].type = RKNN_TENSOR_UINT8;
         inputs[i].size = img_size;
-        inputs[i].fmt = RKNN_TENSOR_NCHW;
-        inputs[0].pass_through = 0;
-    }
-    {
-        inputs[0].buf = orig_img.data;
-        inputs[1].buf = orig_img2.data;
+        inputs[i].fmt = RKNN_TENSOR_NHWC;
     }
 
+    inputs[0].buf = orig_img_vis.data;//pVisibleRgbData;
+    inputs[1].buf = orig_img_ir.data;;//pInfrareRgbData;
 
+    struct timeval start_time, stop_time;
+    gettimeofday(&start_time, NULL);
+    rknn_inputs_set(ctx, io_num.n_input, inputs);
     ret = rknn_inputs_set(ctx, io_num.n_input, inputs);
     if (ret < 0)
     {
@@ -233,7 +206,8 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     // Get Output
     rknn_output outputs[1];
     memset(outputs, 0, sizeof(outputs));
-    outputs[0].want_float = 0;
+    //outputs[0].want_float = 0;
+    outputs[0].want_float = 1;
     ret = rknn_outputs_get(ctx, 1, outputs, NULL);
     if (ret < 0)
     {
@@ -241,28 +215,39 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
         return -1;
     }
 
-    pFusionRgbData=(uchar*)(outputs[0].buf);
+    struct timeval start_time1;
+    struct timeval start_time2;
+    int count = 30;
+    Mat Img;
+    gettimeofday(&start_time1, NULL);
 
-     //inImage: input pic  of inf rgb 
-	cv::Mat imageY(orig_img3.rows,orig_img2.cols,1);
-	cv::Mat imageU(orig_img3.rows,orig_img2.cols,1);
-	cv::Mat imageV(orig_img3.rows,orig_img2.cols,1);	
+    for(int k=0;k<count;k++)
+    {
+        Mat b(MODEL_IN_HEIGHT,MODEL_IN_WIDTH,CV_32FC1,(float*)outputs[0].buf);
+        Mat g(MODEL_IN_HEIGHT,MODEL_IN_WIDTH,CV_32FC1,(float*)(outputs[0].buf+MODEL_IN_WIDTH*MODEL_IN_HEIGHT*1*sizeof(float)));
+        Mat r(MODEL_IN_HEIGHT,MODEL_IN_WIDTH,CV_32FC1,(float*)(outputs[0].buf+MODEL_IN_WIDTH*MODEL_IN_HEIGHT*2*sizeof(float)));
+        b.convertTo(b,CV_8UC1);
+        g.convertTo(g,CV_8UC1);
+        r.convertTo(r,CV_8UC1);
 
-	cv::Mat image2YUV;
-	cv::cvtColor(orig_img3,image2YUV,CV_BGR2YUV);
-	std::vector<Mat> mv;
-	split(orig_img3, (vector<Mat>&)mv);
-	imageY = mv[0].clone();
-	imageU = mv[1].clone();
-	imageV = mv[2].clone();
+        vector<Mat> Vecs;
+        Vecs.push_back(b);
+        Vecs.push_back(g);
+        Vecs.push_back(r);
+        merge(Vecs,Img);
+    }
 
-    mv[0].data=(uchar*)(outputs[0].buf);
+    gettimeofday(&start_time2, NULL);
 
-    cv::Mat m3(MODEL_IN_HEIGHT, MODEL_IN_WIDTH, CV_8UC3);
-    cv::merge(mv, m3);
-    
+    gettimeofday(&stop_time, NULL);
+    printf(" run total = %f ms\n", 
+           (__get_us(start_time1) - __get_us(start_time)) / 1000.0);
+    printf(" run postprocess average1 = %f ms\n", 
+           (__get_us(start_time2) - __get_us(start_time1)) / 1000.0/count);
+    printf(" run postprocess average2 = %f ms\n", 
+           (__get_us(stop_time) - __get_us(start_time2)) / 1000.0/count);
+    imwrite("Img.jpg",Img);
 
-    cv::imwrite("./imgyuv.jpg", m3);
 
     // Release rknn_outputs
     rknn_outputs_release(ctx, 1, outputs);
@@ -270,13 +255,12 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, void *pF
     // Release
     if (ctx >= 0)
     {
-       rknn_destroy(ctx);
+        rknn_destroy(ctx);
     }
     if (model)
     {
-       free(model);
+        free(model);
     }
-	//memcpy(pFusionRgbData, pVisibleRgbData, uiWidth * uiHeight * 3);
 
 	return 0;
 }

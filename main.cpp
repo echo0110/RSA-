@@ -24,7 +24,7 @@ extern "C" {
 using namespace std;
 using namespace cv;
 
-#define IMG_COUNT  1//133		//我们有133张图
+#define IMG_COUNT  2//133		//我们有133张图
 
 
 //#define JPEG_LIB_VERSION 62
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
 #if 1
 	gettimeofday(&start_time, NULL);
-	for (int i = 0; i < IMG_COUNT; i++)
+	for (int i = 1; i < IMG_COUNT; i++)
 	{
 		//分别读取红外和可见光图像
 //		sprintf(szRgbFileName, "res/inf_%d.rgb", i);
@@ -92,10 +92,10 @@ int main(int argc, char *argv[])
 //		ReadFile(szRgbFileName, szVisData, sizeof(szVisData));
 
 
-        sprintf(szRgbFileName, "jpg/512x384/inf_512x384_%d.jpg", i);
+        sprintf(szRgbFileName, "./inf_512x384_%d.jpg", i);
         printf(" %s,%d, szRgbFileName is %s\n",__func__,__LINE__,szRgbFileName);
         ReadFile(szRgbFileName, szInfData, sizeof(szInfData));
-        sprintf(szRgbFileName, "jpg/512x384/vis_512x384_%d.jpg", i);
+        sprintf(szRgbFileName, "./vis_512x384_%d.jpg", i);
         printf(" %s,%d, szRgbFileName is %s\n",__func__,__LINE__,szRgbFileName);
         ReadFile(szRgbFileName, szVisData, sizeof(szVisData));
 
@@ -109,6 +109,8 @@ int main(int argc, char *argv[])
         
 		//执行融合
 		RKNN_ImgFusionProcess(szVisData, szInfData, szFusionData, IMG_WIDTH, IMG_HEIGHT);
+
+        return 0;
 
 		Mat matRgb(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, szFusionData);
 		cvtColor(matRgb, matBgr, COLOR_RGB2BGR);
