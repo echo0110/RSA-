@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 //	}
 
 	//初始化
-	//RKNN_ImgFusionInit(argv[1]);
+	RKNN_ImgFusionInit(argv[1]);
 
 	//VideoWriter video("out.avi", CV_FOURCC('M','P','4','2'), 10, Size(IMG_WIDTH, IMG_HEIGHT));
 	Mat matBgr(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
@@ -99,31 +99,65 @@ int main(int argc, char *argv[])
         printf(" %s,%d, szRgbFileName is %s\n",__func__,__LINE__,szRgbFileName);
         ReadFile(szRgbFileName, szVisData, sizeof(szVisData));
 
-        
+
+        const char *img_path_vis = "/oem/ImageFusion/vis_512x384_1.jpg";
+        const char *img_path_ir = "/oem/ImageFusion/inf_512x384_1.jpg";
+        // Load image    
+        cv::Mat orig_img_vis = imread(img_path_vis);
+        if (!orig_img_vis.data)
+        {
+        printf("cv::imread %s fail!\n", img_path_vis);
+        return -1;
+        }
+
+        cv::Mat orig_img_ir = imread(img_path_ir);
+        if (!orig_img_ir.data)
+        {
+        printf("cv::imread %s fail!\n", img_path_ir);
+        return -1;
+        }
        
-       
-       
-        
-        
-        
         
 		//执行融合
-		RKNN_ImgFusionProcess(szVisData, szInfData, szFusionData, IMG_WIDTH, IMG_HEIGHT);
+		//RKNN_ImgFusionProcess(szVisData, szInfData, szFusionData, IMG_WIDTH, IMG_HEIGHT);
+		RKNN_ImgFusionProcess(orig_img_vis.data, orig_img_ir.data, szFusionData, IMG_WIDTH, IMG_HEIGHT);
 
+
+        
+        int count = 30;
+        Mat Img;
+        for(int k=0;k<count;k++)
+        {
+            Mat b(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)szFusionData);
+            Mat g(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)(szFusionData+IMG_WIDTH512*IMG_HEIGHT384*1*sizeof(float)));
+            Mat r(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)(szFusionData+IMG_WIDTH512*IMG_HEIGHT384*2*sizeof(float)));
+            b.convertTo(b,CV_8UC1);
+            g.convertTo(g,CV_8UC1);
+            r.convertTo(r,CV_8UC1);
+    
+            vector<Mat> Vecs;
+            Vecs.push_back(b);
+            Vecs.push_back(g);
+            Vecs.push_back(r);
+            merge(Vecs,Img);
+        }
+        sprintf(szRgbFileName, "fus_%d.jpg", i);
+		cv::imwrite(szRgbFileName, Img);
+		printf("save %s\n", szRgbFileName);
         return 0;
 
 		Mat matRgb(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3, szFusionData);
 		cvtColor(matRgb, matBgr, COLOR_RGB2BGR);
-		//video << matBgr;
+		
 
 		sprintf(szRgbFileName, "fus_%d.jpg", i);
 		cv::imwrite(szRgbFileName, matBgr);
 		printf("save %s\n", szRgbFileName);
 	}
 	gettimeofday(&stop_time, NULL);
-	printf("run use %f ms , average time: %f ms\n", 
-			(__get_us(stop_time) - __get_us(start_time)) / 1000.0,
-			(__get_us(stop_time) - __get_us(start_time)) / 1000.0 / IMG_COUNT);
+//	printf("run use %f ms , average time: %f ms\n", 
+//			(__get_us(stop_time) - __get_us(start_time)) / 1000.0,
+//			(__get_us(stop_time) - __get_us(start_time)) / 1000.0 / IMG_COUNT);
 
 #else
 	//这部分是测试单纯融合100次消耗的时间

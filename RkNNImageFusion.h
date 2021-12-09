@@ -11,6 +11,10 @@ return: 				0: 表示成功, -1:表示失败
 #define IMG_WIDTH1920  1920
 #define IMG_HEIGHT1080 1080
 
+#define IMG_WIDTH512  512
+#define IMG_HEIGHT384 384
+
+
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc.hpp"
