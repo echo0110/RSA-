@@ -36,7 +36,6 @@ using namespace cv;
 char szVisData[IMG_WIDTH * IMG_HEIGHT * 3];
 char szInfData[IMG_WIDTH * IMG_HEIGHT * 3];
 char buff[IMG_WIDTH * IMG_HEIGHT * 3];
-//void** szFusionData=NULL;
 
 void* a = NULL;
 void** szFusionData=&a;
