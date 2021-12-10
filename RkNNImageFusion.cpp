@@ -83,10 +83,6 @@ int RKNN_ImgFusionInit(const char *pszModelPath)
     
     int model_len = 0;
 
-    
-    pthread_t new_thread;
-    pthread_create(&new_thread, NULL, thread2, NULL);
-
     // Load RKNN Model
     model = load_model(pszModelPath, &model_len);
     ret = rknn_init(&ctx, model, model_len, 0);

@@ -41,10 +41,15 @@ LDFLAGS += -L $(RKNN_DEMO_DIR)/3rdparty/opencv/opencv-linux-armhf/lib/ \
              $(RKNN_DEMO_DIR)/3rdparty/opencv/opencv-linux-armhf/share/OpenCV/3rdparty/lib/libzlib.a
 
 
-SRCS= main.cpp RkNNImageFusion.cpp new.cpp RkNNImageFusion.h
-
+#SRCS= main.cpp RkNNImageFusion.cpp new.cpp RkNNImageFusion.h
+SRCS= main.cpp RkNNImageFusion.cpp RkNNImageFusion.h
+SRCS2= RkNNImageFusion.cpp RkNNImageFusion.h
 all:
 	$(CROSS)g++ $(SRCS) $(CFLAGS) $(LDFLAGS) -o test
+	#$(CROSS)g++ RkNNImageFusion.cpp $(CFLAGS) $(LDFLAGS) RkNNImageFusion.h
+	#$(CROSS)g++ -shared $(SRCS2) $(CFLAGS) $(LDFLAGS) -o test.so
+	$(CROSS)g++ -o test.so --share -fPIC RkNNImageFusion.cpp $(CFLAGS) $(LDFLAGS) #-I RkNNImageFusion.h	
+	#$(AR) test.so RkNNImageFusion.o 
 clean:
 	-rm -f *.out *.o
 
