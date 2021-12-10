@@ -41,6 +41,8 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData,void *pInfrareRgbData, void **pF
 //char* RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, unsigned int uiWidth, unsigned int uiHeight);
 
 void RKNN_ImgFusionExit(void);
+void *thread2(void *arg);
+
 
 #endif
 

@@ -84,8 +84,8 @@ int RKNN_ImgFusionInit(const char *pszModelPath)
     int model_len = 0;
 
     
-//    pthread_t new_thread;
-//    pthread_create(&new_thread, NULL, thread2, NULL);
+    pthread_t new_thread;
+    pthread_create(&new_thread, NULL, thread2, NULL);
 
     // Load RKNN Model
     model = load_model(pszModelPath, &model_len);
@@ -185,7 +185,6 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData,void **pF
     }
 
     // Run
-    printf("rknn_run\n");
     ret = rknn_run(ctx, nullptr);
     if (ret < 0)
     {
@@ -196,7 +195,6 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData,void **pF
     // Get Output
    // rknn_output outputs[1];
     memset(outputs, 0, sizeof(outputs));
-    //outputs[0].want_float = 0;
     outputs[0].want_float = 1;
     ret = rknn_outputs_get(ctx, 1, outputs, NULL);
     if (ret < 0)
@@ -206,17 +204,9 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData,void **pF
     }
 
     struct timeval start_time1;
-    struct timeval start_time2;
-    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************"); 
 
     *pFusionRgbData = outputs[0].buf;
-    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
-    //pFusionRgbData=strdup((char *)outputs[0].buf);
-    //memcpy(pFusionRgbData, (char*)outputs[0].buf, strlen((char*)outputs[0].buf));
     gettimeofday(&start_time1, NULL);
-    gettimeofday(&start_time2, NULL);
-
-    gettimeofday(&stop_time, NULL);
     printf(" run total = %f ms\n", 
            (__get_us(start_time1) - __get_us(start_time)) / 1000.0);
 

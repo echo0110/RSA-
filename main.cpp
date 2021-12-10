@@ -117,14 +117,11 @@ int main(int argc, char *argv[])
 		//执行融合
 		//RKNN_ImgFusionProcess(szVisData, szInfData, szFusionData, IMG_WIDTH, IMG_HEIGHT);
 		RKNN_ImgFusionProcess(orig_img_vis.data, orig_img_ir.data, szFusionData, IMG_WIDTH, IMG_HEIGHT);
-        printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
         int count = 30;
         Mat Img;
         for(int k=0;k<count;k++)
         {
-            printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
             Mat b(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)(*szFusionData));
-            printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
             Mat g(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)((*szFusionData)+IMG_WIDTH512*IMG_HEIGHT384*1*sizeof(float)));
             Mat r(IMG_HEIGHT384,IMG_WIDTH512,CV_32FC1,(float*)((*szFusionData)+IMG_WIDTH512*IMG_HEIGHT384*2*sizeof(float)));
             b.convertTo(b,CV_8UC1);
