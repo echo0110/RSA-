@@ -22,6 +22,10 @@ return: 				0: 表示成功, -1:表示失败
 
 #include "rknn_api.h"
 #include <iostream>
+
+#include <string>
+#include <iostream>
+
 using namespace cv;
 
 extern double __get_us(struct timeval t);
@@ -42,6 +46,15 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData,void *pInfrareRgbData, void **pF
 
 void RKNN_ImgFusionExit(void);
 void *thread2(void *arg);
+
+
+ 
+std::string base64_encode(unsigned char const* , unsigned int len);
+std::string base64_decode(std::string const& s);
+
+//extern  std::string base64_chars;
+
+
 
 
 #endif

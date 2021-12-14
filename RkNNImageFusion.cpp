@@ -42,6 +42,10 @@ unsigned char *model;
 
 rknn_output outputs[1];
 
+
+
+
+
 static void printRKNNTensor(rknn_tensor_attr *attr)
 {
     printf("index=%d name=%s n_dims=%d dims=[%d %d %d %d] n_elems=%d size=%d fmt=%d type=%d qnt_type=%d fl=%d zp=%d scale=%f\n",
