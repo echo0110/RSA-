@@ -45,7 +45,10 @@ LDFLAGS += -L $(RKNN_DEMO_DIR)/3rdparty/opencv/opencv-linux-armhf/lib/ \
 SRCS= main.cpp RkNNImageFusion.cpp RkNNImageFusion.h
 SRCS2= RkNNImageFusion.cpp RkNNImageFusion.h
 all:
-	$(CROSS)g++ main.cpp new.cpp base64.cpp $(CFLAGS) $(LDFLAGS) -L. test.so -o test
+	$(CROSS)g++ main.cpp new.cpp base64.cpp $(CFLAGS) -L libcryptopp.a $(LDFLAGS) -L. test.so test.o -o test
+	#$(CROSS)g++ main.cpp new.cpp base64.cpp $(CFLAGS) -L libcryptopp.a $(LDFLAGS) -L. test.so test.o -o test
+	#$(CROSS)g++ test.cpp $(CFLAGS) -L libcryptopp.a $(LDFLAGS) -L. test.so -o test
+	#$(CROSS)g++ encrypt.cpp $(CFLAGS) $(LDFLAGS) -o encrypt
 	#$(CROSS)g++ -o test.so --share -fPIC RkNNImageFusion.cpp $(CFLAGS) $(LDFLAGS) #-I RkNNImageFusion.h	
 clean:
 	-rm -f *.out *.o

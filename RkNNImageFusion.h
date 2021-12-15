@@ -30,6 +30,8 @@ using namespace cv;
 
 extern double __get_us(struct timeval t);
 
+std::string RSADecryptString(const char *privFilename, const char *ciphertext);
+
 
 int RKNN_ImgFusionInit(const char *pszModelPath);
 
