@@ -39,10 +39,31 @@ rknn_input_output_num io_num;
 int ret=0;
 
 unsigned char *model;
+FILE *rknn_file = NULL;
 
 rknn_output outputs[1];
 
 
+
+char* RSADecryptString(char *ciphertext)
+{
+    FILE *stream = NULL;
+    char buf[1024];
+
+    memset(buf, 0, sizeof(buf));
+    char cmd[500];
+    memset(cmd, 0, sizeof(cmd));
+    snprintf(cmd, sizeof(cmd), "./cryptest.exe rd priv_key %s", ciphertext);
+    if ((stream = popen(cmd, "r")) == NULL) {
+        fprintf(stderr, "%s", strerror(errno));
+        //return -1;
+    }
+    /* output the message */
+    while (fgets(buf, sizeof(buf), stream) != NULL) {
+        printf("%s", buf);
+    }
+    return buf;
+}
 
 
 
@@ -53,21 +74,22 @@ static void printRKNNTensor(rknn_tensor_attr *attr)
            attr->n_elems, attr->size, 0, attr->type, attr->qnt_type, attr->fl, attr->zp, attr->scale);
 }
 
-static unsigned char *load_model(const char *filename, int *model_size)
+//static unsigned char *load_model(const char *filename, int *model_size)
+static unsigned char *load_model(FILE *fp, int *model_size)
 {
-    FILE *fp = fopen(filename, "rb");
-    if (fp == nullptr)
-    {
-        printf("fopen %s fail!\n", filename);
-        return NULL;
-    }
+//    FILE *fp = fopen(filename, "rb");
+//    if (fp == nullptr)
+//    {
+//        printf("fopen %s fail!\n", filename);
+//        return NULL;
+//    }
     fseek(fp, 0, SEEK_END);
     int model_len = ftell(fp);
     unsigned char *model = (unsigned char *)malloc(model_len);
     fseek(fp, 0, SEEK_SET);
     if (model_len != fread(model, 1, model_len, fp))
     {
-        printf("fread %s fail!\n", filename);
+        printf("fread %s fail!\n", __func__);
         free(model);
         return NULL;
     }
@@ -81,14 +103,21 @@ static unsigned char *load_model(const char *filename, int *model_size)
 
 
 
-int RKNN_ImgFusionInit(const char *pszModelPath)
+int RKNN_ImgFusionInit(const char *pszModelPath,char *ciphertext)
 {
   
     
     int model_len = 0;
+    char cmd[20];
+    RSADecryptString(ciphertext);
 
+    memset(cmd, 0, sizeof(cmd));
+    snprintf(cmd, sizeof(cmd), "echo %s | base64 -d", rknn_base64);
+    if ((rknn_file = popen(cmd, "r")) == NULL) {
+        fprintf(stderr, "%s", strerror(errno));
+    }
     // Load RKNN Model
-    model = load_model(pszModelPath, &model_len);
+    model = load_model(rknn_file, &model_len);
     ret = rknn_init(&ctx, model, model_len, 0);
     if (ret < 0)
     {
@@ -158,6 +187,8 @@ int RKNN_ImgFusionInit(const char *pszModelPath)
        inputs[i].size = img_size;
        inputs[i].fmt = RKNN_TENSOR_NHWC;
     }
+
+    
 	return 0;
 }
 
@@ -231,4 +262,5 @@ void RKNN_ImgFusionExit(void)
     }	
     
 }
+
 

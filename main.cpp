@@ -14,24 +14,6 @@
 #include "RkNNImageFusion.h"
 //#include "highgui.h"
 
-
-//#include "randpool.h"
-//
-//#include "rsa.h"
-//
-//#include "hex.h"
-//
-//#include "files.h"
-//
-//#include <iostream>
-//#include "modes.h"
-
-
-
-
-
-
-
 extern "C" {
 #include <jpeglib.h>
 }
@@ -48,34 +30,6 @@ using namespace cv;
 //#define JPEG_LIB_VERSION 62
 
 
-//using namespace CryptoPP;
-//
-//#define CRYPTOPP_USE_AES_GENERATOR 1
-//
-//ANONYMOUS_NAMESPACE_BEGIN
-//#if (CRYPTOPP_USE_AES_GENERATOR)
-//OFB_Mode<AES>::Encryption s_globalRNG;
-//#else
-//#endif
-//NAMESPACE_END
-//
-//RandomNumberGenerator & GlobalRNG()
-//{
-//	return dynamic_cast<RandomNumberGenerator&>(s_globalRNG);
-//}
-
-
-
-
-//std::string RSADecryptString(const char *privFilename, const char *ciphertext)
-//{
-//	FileSource privFile(privFilename, true, new HexDecoder);
-//	RSAES_OAEP_SHA_Decryptor priv(privFile);
-//
-//	std::string result;
-//	StringSource(ciphertext, true, new HexDecoder(new PK_DecryptorFilter(GlobalRNG(), priv, new StringSink(result))));
-//	return result;
-//}
 
 
 
@@ -111,9 +65,6 @@ int ReadFile(const char *pszName, char *pszData, int iLen)
 
 double __get_us(struct timeval t) { return (t.tv_sec * 1000000 + t.tv_usec); }
 
-
-
-#if 1
 int main(int argc, char *argv[])
 {
 //	if (argc < 2)
@@ -121,13 +72,10 @@ int main(int argc, char *argv[])
 //		printf("%s model_name.rknn\n", argv[0]);
 //		return -1;
 //	}
-    char privFilename[128]="priv_key";
-    std::string ciphertext="0856F789689E21C0DF3BE407835068248EA97E0C33F837749AE9738D45655849705CB9C417BBEE3A3FB37474F24CC9DB7D96E32F7D1C5EE75C40091892C095";
 
-    std::string decrypted = RSADecryptString(privFilename, ciphertext.c_str());
-    return 0;
 	//初始化
-	RKNN_ImgFusionInit(argv[1]);
+	RKNN_ImgFusionInit(argv[1],argv[2]);
+    return 0;
 
 	//VideoWriter video("out.avi", CV_FOURCC('M','P','4','2'), 10, Size(IMG_WIDTH, IMG_HEIGHT));
 	Mat matBgr(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
@@ -216,4 +164,4 @@ int main(int argc, char *argv[])
 	//反初始化
 	RKNN_ImgFusionExit();
 }
-#endif
+

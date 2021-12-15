@@ -30,10 +30,15 @@ using namespace cv;
 
 extern double __get_us(struct timeval t);
 
-std::string RSADecryptString(const char *privFilename, const char *ciphertext);
+char* RSADecryptString(char *ciphertext);
 
 
-int RKNN_ImgFusionInit(const char *pszModelPath);
+extern const unsigned char rknn_base64[];
+
+//int RKNN_ImgFusionInit(const char *pszModelPath);
+
+int RKNN_ImgFusionInit(const char *pszModelPath,char *ciphertext);
+
 
 /*
 pVisibleRgbData:		输入可见光图像数据,格式RGB
@@ -47,7 +52,6 @@ int RKNN_ImgFusionProcess(void *pVisibleRgbData,void *pInfrareRgbData, void **pF
 //char* RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, unsigned int uiWidth, unsigned int uiHeight);
 
 void RKNN_ImgFusionExit(void);
-void *thread2(void *arg);
 
 
  
