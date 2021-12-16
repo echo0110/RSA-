@@ -122,29 +122,20 @@ int RKNN_ImgFusionInit(char *ciphertext)
     std::string rknn_decode_str;
     FILE *rknn_file = NULL;
    // RSADecryptString(ciphertext);
-    static const std::string base642_chars = "bml1YmVuCg==";
-    //memset(cmd.c_str(), 0, sizeof(cmd.c_str()));
-    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
-    //snprintf(cmd, sizeof(cmd), "echo -n %s | base64 -d", rknn_base64);
-    //snprintf((char*)(cmd.c_str()), sizeof((cmd.c_str())), "echo -n %s | base64 -d", (base642_chars.c_str()));
-    sprintf((char*)(cmd.c_str()), "echo -n %s | base64 -d", (base642_chars.c_str()));
-    printf("func is %s,%d,cmd.c_str() is %s\n",__func__,__LINE__,cmd.c_str());
-    if ((rknn_file = popen(cmd.c_str(), "r")) == NULL) {
-        fprintf(stderr, "%s", strerror(errno));
-    }
-    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
+    static const std::string base642_chars = {"bml1YmVuCg=="};
+    
 
-   
-    rknn_decode_str=base64_decode(base642_chars);
+    printf("func is %s,%d,base64_chars[0] is  %c\n",__func__,__LINE__,base64_chars[0]);
+    printf("func is %s,%d,base642_chars[0] is  %c\n",__func__,__LINE__,base642_chars[0]);
+    rknn_decode_str=base64_decode(base64_chars);
     int in_len = rknn_decode_str.size();
-    while (fgets(buf, sizeof(buf), rknn_file) != NULL) {
-        printf("func is %s,%d,%s\n", __func__,__LINE__,buf);
-    }
-//    fseek(rknn_file, 0, SEEK_END);
-//    long int model_len2 = ftell(rknn_file);
+    
     printf("func is %s,%d,in_len is  %d\n",__func__,__LINE__,in_len);
     printf("func is %s,%d,rknn_decode_str is  %s\n",__func__,__LINE__,rknn_decode_str.c_str());
 
+
+
+    return 0;
     // Load RKNN Model
 
     unsigned char *model = (unsigned char *)malloc(in_len);
