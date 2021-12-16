@@ -53,7 +53,7 @@ all:
 	#$(CROSS)g++ encrypt.cpp $(CFLAGS) $(LDFLAGS) -o encrypt
 	#$(CROSS)g++ -o test.so --share -fPIC RkNNImageFusion.cpp $(CFLAGS) $(LDFLAGS) #-I RkNNImageFusion.h	
 clean:
-	-rm -f *.out *.o
+	rm -f *.out *.o
 
 install:
 	mv test.out  /Work/sambaboot/NPU/ -f && sync && sync

@@ -21,11 +21,11 @@
 using namespace std;
 using namespace cv;
 
-
-static const std::string base64_chars = 
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-             "abcdefghijklmnopqrstuvwxyz"
-             "0123456789+/";
+#if 1
+//static const std::string base64_chars = 
+//             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+//             "abcdefghijklmnopqrstuvwxyz"
+//             "0123456789+/";
 
 
 
@@ -74,4 +74,4 @@ std::string base64_decode(std::string const& encoded_string) {
  
   return ret;
 }
-
+#endif

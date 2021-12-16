@@ -33,11 +33,14 @@ extern double __get_us(struct timeval t);
 char* RSADecryptString(char *ciphertext);
 
 
-extern const unsigned char rknn_base64[];
+//extern const unsigned char rknn_base64[];
+extern const std::string base64_chars;
+
+std::string base64_decode(std::string const& encoded_string);
 
 //int RKNN_ImgFusionInit(const char *pszModelPath);
 
-int RKNN_ImgFusionInit(const char *pszModelPath,char *ciphertext);
+int RKNN_ImgFusionInit(char *ciphertext);
 
 
 /*

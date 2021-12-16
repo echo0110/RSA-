@@ -74,7 +74,9 @@ int main(int argc, char *argv[])
 //	}
 
 	//初始化
-	RKNN_ImgFusionInit(argv[1],argv[2]);
+
+    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
+	RKNN_ImgFusionInit(argv[1]);
     return 0;
 
 	//VideoWriter video("out.avi", CV_FOURCC('M','P','4','2'), 10, Size(IMG_WIDTH, IMG_HEIGHT));

@@ -39,7 +39,7 @@ rknn_input_output_num io_num;
 int ret=0;
 
 unsigned char *model;
-FILE *rknn_file = NULL;
+
 
 rknn_output outputs[1];
 
@@ -77,22 +77,32 @@ static void printRKNNTensor(rknn_tensor_attr *attr)
 //static unsigned char *load_model(const char *filename, int *model_size)
 static unsigned char *load_model(FILE *fp, int *model_size)
 {
+    char buf[1024];
 //    FILE *fp = fopen(filename, "rb");
-//    if (fp == nullptr)
-//    {
-//        printf("fopen %s fail!\n", filename);
-//        return NULL;
-//    }
+    
+    if (fp == nullptr)
+    {
+        printf("fopen %s fail!\n", __func__);
+        return NULL;
+    }
+
+    while (fgets(buf, sizeof(buf), fp) != NULL) {
+        printf("func is %s,%d,%s\n", __func__,__LINE__,buf);
+    }
+    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
     fseek(fp, 0, SEEK_END);
-    int model_len = ftell(fp);
+    long int model_len = ftell(fp);
+    printf("func is %s,model_len is %ld, %s\n",__func__,__LINE__,model_len);
     unsigned char *model = (unsigned char *)malloc(model_len);
     fseek(fp, 0, SEEK_SET);
-    if (model_len != fread(model, 1, model_len, fp))
+    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
+    if (model_len != fread(model, 1, 20, fp))
     {
         printf("fread %s fail!\n", __func__);
         free(model);
         return NULL;
     }
+    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
     *model_size = model_len;
     if (fp)
     {
@@ -103,21 +113,44 @@ static unsigned char *load_model(FILE *fp, int *model_size)
 
 
 
-int RKNN_ImgFusionInit(const char *pszModelPath,char *ciphertext)
+int RKNN_ImgFusionInit(char *ciphertext)
 {
   
-    
+    char buf[1024];   
     int model_len = 0;
-    char cmd[20];
-    RSADecryptString(ciphertext);
-
-    memset(cmd, 0, sizeof(cmd));
-    snprintf(cmd, sizeof(cmd), "echo %s | base64 -d", rknn_base64);
-    if ((rknn_file = popen(cmd, "r")) == NULL) {
+    std::string cmd;
+    std::string rknn_decode_str;
+    FILE *rknn_file = NULL;
+   // RSADecryptString(ciphertext);
+    static const std::string base642_chars = "bml1YmVuCg==";
+    //memset(cmd.c_str(), 0, sizeof(cmd.c_str()));
+    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
+    //snprintf(cmd, sizeof(cmd), "echo -n %s | base64 -d", rknn_base64);
+    //snprintf((char*)(cmd.c_str()), sizeof((cmd.c_str())), "echo -n %s | base64 -d", (base642_chars.c_str()));
+    sprintf((char*)(cmd.c_str()), "echo -n %s | base64 -d", (base642_chars.c_str()));
+    printf("func is %s,%d,cmd.c_str() is %s\n",__func__,__LINE__,cmd.c_str());
+    if ((rknn_file = popen(cmd.c_str(), "r")) == NULL) {
         fprintf(stderr, "%s", strerror(errno));
     }
+    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
+
+   
+    rknn_decode_str=base64_decode(base642_chars);
+    int in_len = rknn_decode_str.size();
+    while (fgets(buf, sizeof(buf), rknn_file) != NULL) {
+        printf("func is %s,%d,%s\n", __func__,__LINE__,buf);
+    }
+//    fseek(rknn_file, 0, SEEK_END);
+//    long int model_len2 = ftell(rknn_file);
+    printf("func is %s,%d,in_len is  %d\n",__func__,__LINE__,in_len);
+    printf("func is %s,%d,rknn_decode_str is  %s\n",__func__,__LINE__,rknn_decode_str.c_str());
+
     // Load RKNN Model
-    model = load_model(rknn_file, &model_len);
+
+    unsigned char *model = (unsigned char *)malloc(in_len);
+    model=(uchar *)(rknn_decode_str.c_str());
+   // model = load_model(rknn_file, &model_len);
+    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
     ret = rknn_init(&ctx, model, model_len, 0);
     if (ret < 0)
     {
