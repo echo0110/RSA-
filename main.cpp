@@ -67,6 +67,7 @@ double __get_us(struct timeval t) { return (t.tv_sec * 1000000 + t.tv_usec); }
 
 int main(int argc, char *argv[])
 {
+    int error_code;
 //	if (argc < 2)
 //	{
 //		printf("%s model_name.rknn\n", argv[0]);
@@ -76,8 +77,9 @@ int main(int argc, char *argv[])
 	//初始化
 
     printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
-	RKNN_ImgFusionInit(argv[1]);
-    return 0;
+	error_code=RKNN_ImgFusionInit(argv[1]);
+    if(error_code==-2)
+        return -2;
 
 	//VideoWriter video("out.avi", CV_FOURCC('M','P','4','2'), 10, Size(IMG_WIDTH, IMG_HEIGHT));
 	Mat matBgr(Size(IMG_WIDTH, IMG_HEIGHT), CV_8UC3);
