@@ -43,17 +43,19 @@ unsigned char *model;
 
 rknn_output outputs[1];
 
+char hardCde[200];
 
 
 char* RSADecryptString(char *ciphertext)
 {
     FILE *stream = NULL;
-    char buf[1024];
-
+    char buf[100];
+    char *pstring;
     memset(buf, 0, sizeof(buf));
-    char cmd[500];
+    char cmd[1024];
     memset(cmd, 0, sizeof(cmd));
     snprintf(cmd, sizeof(cmd), "./cryptest.exe rd priv_key %s", ciphertext);
+    printf("func is %s,%d,cmd is  %s\n",__func__,__LINE__,cmd);
     if ((stream = popen(cmd, "r")) == NULL) {
         fprintf(stderr, "%s", strerror(errno));
         //return -1;
@@ -62,8 +64,28 @@ char* RSADecryptString(char *ciphertext)
     while (fgets(buf, sizeof(buf), stream) != NULL) {
         printf("%s", buf);
     }
-    return buf;
+    printf("func is %s,%d,buf is  %s\n",__func__,__LINE__,buf);
+    pstring=strdup((char *)buf);
+    return pstring;
 }
+
+void getSerialNum(char buf[]){
+    FILE *stream = NULL;
+    //char buf[100];
+    memset(buf, 0, sizeof(buf));
+    char cmd[100];
+    memset(cmd, 0, sizeof(cmd));
+    sprintf(cmd, "cat /proc/cpuinfo | grep Serial");
+    if ((stream = popen(cmd, "r")) == NULL) {
+        fprintf(stderr,"func is %s,%d, %s",__func__,__LINE__, strerror(errno));
+    }
+    /* output the message */
+    while (fgets(buf, 100, stream) != NULL) {
+        printf("func is %s,%d,%s", __func__,__LINE__,buf);
+    }
+}
+
+
 
 
 
@@ -116,29 +138,34 @@ static unsigned char *load_model(FILE *fp, int *model_size)
 int RKNN_ImgFusionInit(char *ciphertext)
 {
   
-    char buf[1024];   
+    char buf[100]={0};   
     int model_len = 0;
     std::string cmd;
     std::string rknn_decode_str;
+    char *decryptStr=NULL;
     FILE *rknn_file = NULL;
-   // RSADecryptString(ciphertext);
+    decryptStr=RSADecryptString(ciphertext);
+    printf("func is %s,%d,decryptStr is  %s\n",__func__,__LINE__,decryptStr);
+    free(decryptStr);
+    getSerialNum(buf);
+    printf("func is %s,%d,buf is %s\n",__func__,__LINE__,&buf[10]);
+    return 0;
     static const std::string base642_chars = {"bml1YmVuCg=="};
     
 
     printf("func is %s,%d,base64_chars[0] is  %c\n",__func__,__LINE__,base64_chars[0]);
     printf("func is %s,%d,base642_chars[0] is  %c\n",__func__,__LINE__,base642_chars[0]);
     rknn_decode_str=base64_decode(base64_chars);
-    int in_len = rknn_decode_str.size();
+    model_len = rknn_decode_str.size();
     
-    printf("func is %s,%d,in_len is  %d\n",__func__,__LINE__,in_len);
+    printf("func is %s,%d,in_len is  %d\n",__func__,__LINE__,model_len);
     printf("func is %s,%d,rknn_decode_str is  %s\n",__func__,__LINE__,rknn_decode_str.c_str());
 
 
 
-    return 0;
     // Load RKNN Model
 
-    unsigned char *model = (unsigned char *)malloc(in_len);
+    unsigned char *model = (unsigned char *)malloc(model_len);
     model=(uchar *)(rknn_decode_str.c_str());
    // model = load_model(rknn_file, &model_len);
     printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");

@@ -41,12 +41,8 @@ std::string base64_decode(std::string const& encoded_string) {
   int in_ = 0;
   unsigned char char_array_4[4], char_array_3[3];
   std::string ret;
-  printf("func is %s,%d,in_len is  %d\n",__func__,__LINE__,in_len);
-  printf("func is %s,%d,encoded_string[in_] is  %c\n",__func__,__LINE__,encoded_string[in_]);
   while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
     char_array_4[i++] = encoded_string[in_]; in_++;
-    printf("func is %s,%d,in_ is  %d\n",__func__,__LINE__,in_);
-    printf("func is %s,%d,i is  %d\n",__func__,__LINE__,i);
     if (i ==4) {
       for (i = 0; i <4; i++)
         char_array_4[i] = base64_chars3.find(char_array_4[i]);
