@@ -46,6 +46,7 @@ rknn_output outputs[1];
 char hardCde[200];
 
 
+
 char* RSADecryptString(char *ciphertext)
 {
     FILE *stream = NULL;
@@ -65,7 +66,7 @@ char* RSADecryptString(char *ciphertext)
     return pstring;
 }
 
-void getSerialNum(char buf[]){
+void getSerialNum(char buf[],int num){
     FILE *stream = NULL;
     memset(buf, 0, sizeof(buf));
     char cmd[100];
@@ -75,10 +76,33 @@ void getSerialNum(char buf[]){
         fprintf(stderr,"func is %s,%d, %s",__func__,__LINE__, strerror(errno));
     }
     /* output the message */
-    while (fgets(buf, 100, stream) != NULL) {
+    while (fgets(buf, num, stream) != NULL) {
     }
+    printf("func is %s,%d,The encrypted hardware string is %s\n",__func__,__LINE__,buf);
 }
 
+/*DES  encryt*/
+void DESEncryptString()
+{
+    FILE *stream = NULL;
+    char buf[200]={0};
+    char cmd[100];
+    char serial[20];
+    memset(buf, 0, sizeof(buf));
+    getSerialNum(buf,100);
+    memset(cmd, 0, sizeof(cmd));
+    memset(serial, 0, sizeof(serial));
+    snprintf(serial,16,"%s\n", &buf[10]);
+    sprintf(cmd,"./cryptest.exe te %s infiray\n", serial);
+    if ((stream = popen(cmd, "r")) == NULL) {
+        fprintf(stderr, "%s", strerror(errno));
+    }
+    /* output the message */
+    memset(buf, 0, sizeof(buf));
+    while (fgets(buf, sizeof(buf), stream) != NULL) {
+    }
+    printf("func is %s,%d,The encrypted hardware string is %s\n",__func__,__LINE__,buf);
+}
 
 
 
@@ -138,9 +162,10 @@ int RKNN_ImgFusionInit(char *ciphertext)
     std::string rknn_decode_str;
     char *decryptStr=NULL;
     FILE *rknn_file = NULL;
+    DESEncryptString();
     decryptStr=RSADecryptString(ciphertext);
     
-    getSerialNum(buf);
+    getSerialNum(buf,100);
     if(strcmp(decryptStr,(&buf[10]))==0) {
         printf("func is %s,%d,%s\n",__func__,__LINE__,"Verification is successful (Sequence number matches successfully)");
         free(decryptStr);
