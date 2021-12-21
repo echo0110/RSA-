@@ -43,22 +43,19 @@ unsigned char *model;
 
 rknn_output outputs[1];
 
-char hardCde[200];
-
-
-
 char* RSADecryptString(char *ciphertext)
 {
     FILE *stream = NULL;
-    char buf[100];
+    char buf[200];
     char *pstring;
     memset(buf, 0, sizeof(buf));
     char cmd[1024];
     memset(cmd, 0, sizeof(cmd));
-    snprintf(cmd, sizeof(cmd), "./cryptest.exe rd priv_key %s", ciphertext);
+    sprintf(cmd, "./cryptest.exe td %s niuben521", ciphertext);
     if ((stream = popen(cmd, "r")) == NULL) {
         fprintf(stderr, "%s", strerror(errno));
     }
+   
     /* output the message */
     while (fgets(buf, sizeof(buf), stream) != NULL) {
     }
@@ -78,7 +75,6 @@ void getSerialNum(char buf[],int num){
     /* output the message */
     while (fgets(buf, num, stream) != NULL) {
     }
-    printf("func is %s,%d,The encrypted hardware string is %s\n",__func__,__LINE__,buf);
 }
 
 /*DES  encryt*/
@@ -92,7 +88,7 @@ void DESEncryptString()
     getSerialNum(buf,100);
     memset(cmd, 0, sizeof(cmd));
     memset(serial, 0, sizeof(serial));
-    snprintf(serial,16,"%s\n", &buf[10]);
+    snprintf(serial,strlen(&buf[10]),"%s\n", &buf[10]);
     sprintf(cmd,"./cryptest.exe te %s infiray\n", serial);
     if ((stream = popen(cmd, "r")) == NULL) {
         fprintf(stderr, "%s", strerror(errno));
@@ -101,7 +97,7 @@ void DESEncryptString()
     memset(buf, 0, sizeof(buf));
     while (fgets(buf, sizeof(buf), stream) != NULL) {
     }
-    printf("func is %s,%d,The encrypted hardware string is %s\n",__func__,__LINE__,buf);
+    printf("Please provide me with these strings printed out later so that I can authorize you: %s\n",buf);
 }
 
 
@@ -112,43 +108,6 @@ static void printRKNNTensor(rknn_tensor_attr *attr)
     printf("index=%d name=%s n_dims=%d dims=[%d %d %d %d] n_elems=%d size=%d fmt=%d type=%d qnt_type=%d fl=%d zp=%d scale=%f\n",
            attr->index, attr->name, attr->n_dims, attr->dims[3], attr->dims[2], attr->dims[1], attr->dims[0],
            attr->n_elems, attr->size, 0, attr->type, attr->qnt_type, attr->fl, attr->zp, attr->scale);
-}
-
-//static unsigned char *load_model(const char *filename, int *model_size)
-static unsigned char *load_model(FILE *fp, int *model_size)
-{
-    char buf[1024];
-//    FILE *fp = fopen(filename, "rb");
-    
-    if (fp == nullptr)
-    {
-        printf("fopen %s fail!\n", __func__);
-        return NULL;
-    }
-
-    while (fgets(buf, sizeof(buf), fp) != NULL) {
-        printf("func is %s,%d,%s\n", __func__,__LINE__,buf);
-    }
-    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
-    fseek(fp, 0, SEEK_END);
-    long int model_len = ftell(fp);
-    printf("func is %s,model_len is %ld, %s\n",__func__,__LINE__,model_len);
-    unsigned char *model = (unsigned char *)malloc(model_len);
-    fseek(fp, 0, SEEK_SET);
-    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
-    if (model_len != fread(model, 1, 20, fp))
-    {
-        printf("fread %s fail!\n", __func__);
-        free(model);
-        return NULL;
-    }
-    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
-    *model_size = model_len;
-    if (fp)
-    {
-        fclose(fp);
-    }
-    return model;
 }
 
 
@@ -164,14 +123,14 @@ int RKNN_ImgFusionInit(char *ciphertext)
     FILE *rknn_file = NULL;
     DESEncryptString();
     decryptStr=RSADecryptString(ciphertext);
-    
     getSerialNum(buf,100);
     if(strcmp(decryptStr,(&buf[10]))==0) {
-        printf("func is %s,%d,%s\n",__func__,__LINE__,"Verification is successful (Sequence number matches successfully)");
+        printf("func is %s,%d,%s\n",__func__,__LINE__,"Verify authorization is successful");
         free(decryptStr);
+    } else {
+        printf("func is %s,%d,%s\n",__func__,__LINE__,"verification failed");
+        return -2;
     }
-    else
-    return -2;
 
     // base64 decode
     rknn_decode_str=base64_decode(base64_chars);
@@ -180,7 +139,6 @@ int RKNN_ImgFusionInit(char *ciphertext)
     // Load RKNN Model
     unsigned char *model = (unsigned char *)malloc(model_len);
     model=(uchar *)(rknn_decode_str.c_str());
-   // model = load_model(rknn_file, &model_len);
     ret = rknn_init(&ctx, model, model_len, 0);
     if (ret < 0)
     {
@@ -227,7 +185,6 @@ int RKNN_ImgFusionInit(char *ciphertext)
        }
        printRKNNTensor(&(output_attrs[i]));
     }
-    printf("222func is %s,%d,io_num.n_input is %d\n",__func__,__LINE__,io_num.n_input);
     assert(DEMO_INPUT_NUM == io_num.n_input);
     // Set Input struct
     //rknn_input inputs[DEMO_INPUT_NUM];
@@ -243,7 +200,6 @@ int RKNN_ImgFusionInit(char *ciphertext)
        {
            channel = input_attrs[i].dims[0];
        }
-       printf("channel = %d\n",channel);
        int img_size = MODEL_IN_WIDTH * MODEL_IN_HEIGHT * channel;
        inputs[i].index = i;
        inputs[i].type = RKNN_TENSOR_UINT8;

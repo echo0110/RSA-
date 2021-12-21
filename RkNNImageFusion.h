@@ -30,15 +30,10 @@ using namespace cv;
 
 extern double __get_us(struct timeval t);
 
-char* RSADecryptString(char *ciphertext);
-
-
-//extern const unsigned char rknn_base64[];
 extern const std::string base64_chars;
 
 std::string base64_decode(std::string const& encoded_string);
 
-//int RKNN_ImgFusionInit(const char *pszModelPath);
 
 int RKNN_ImgFusionInit(char *ciphertext);
 
@@ -52,16 +47,10 @@ uiHeight:				图像高度
 return: 				0: 表示成功, -1:表示失败
 */
 int RKNN_ImgFusionProcess(void *pVisibleRgbData,void *pInfrareRgbData, void **pFusionRgbData, unsigned int uiWidth, unsigned int uiHeight);
-//char* RKNN_ImgFusionProcess(void *pVisibleRgbData, void *pInfrareRgbData, unsigned int uiWidth, unsigned int uiHeight);
+
 
 void RKNN_ImgFusionExit(void);
 
-
- 
-std::string base64_encode(unsigned char const* , unsigned int len);
-std::string base64_decode(std::string const& s);
-
-//extern  std::string base64_chars;
 
 
 

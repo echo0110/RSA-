@@ -27,9 +27,6 @@ using namespace cv;
 #define IMG_COUNT  2//133		//我们有133张图
 
 
-//#define JPEG_LIB_VERSION 62
-
-
 
 
 
@@ -75,8 +72,6 @@ int main(int argc, char *argv[])
 //	}
 
 	//初始化
-
-    printf("func is %s,%d, %s\n",__func__,__LINE__,"*******************");
 	error_code=RKNN_ImgFusionInit(argv[1]);
     if(error_code==-2)
         return -2;
@@ -100,8 +95,8 @@ int main(int argc, char *argv[])
         ReadFile(szRgbFileName, szVisData, sizeof(szVisData));
 
 
-        const char *img_path_vis = "/oem/ImageFusion/vis_512x384_1.jpg";
-        const char *img_path_ir = "/oem/ImageFusion/inf_512x384_1.jpg";
+        const char *img_path_vis = argv[2];
+        const char *img_path_ir = argv[3];
         // Load image    
         cv::Mat orig_img_vis = imread(img_path_vis);
         if (!orig_img_vis.data)
@@ -119,7 +114,6 @@ int main(int argc, char *argv[])
         //szFusionData=buff;
         
 		//执行融合
-		//RKNN_ImgFusionProcess(szVisData, szInfData, szFusionData, IMG_WIDTH, IMG_HEIGHT);
 		RKNN_ImgFusionProcess(orig_img_vis.data, orig_img_ir.data, szFusionData, IMG_WIDTH, IMG_HEIGHT);
         int count = 30;
         Mat Img;
